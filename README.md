@@ -18,6 +18,10 @@ Eine ganz einfache Android-App für Bildschirmfotos: Ein großer roter Knopf lie
 ## Gut zu wissen
 
 - Ab Android 9. Kostenlos, ohne Werbung, ohne Internet-Zugriff.
-- Der Knopf lässt sich mit dem Finger verschieben.
-- Der blaue Knopf „Meine Bildschirmfotos“ in der App zeigt alle Screenshots, das neueste zuerst. Beim ersten Mal „Alle zulassen“ wählen.
-- Nach jedem Foto ertönt ein Kamera-Klick und das Handy vibriert kurz. Die Lautstärke des Klicks stellt man mit den normalen Lautstärketasten ein (Medien-Lautstärke).
+- **Foto machen:** einmal auf den roten Knopf tippen. Es klickt und vibriert kurz.
+- **Sofort verschicken:** Nach dem Foto erscheint oben für ein paar Sekunden der grüne Knopf „Verschicken“. Antippen, dann WhatsApp oder eine andere App wählen.
+- **Fotos ansehen und löschen:** In der App der blaue Knopf „Meine Bildschirmfotos“. Antippen öffnet ein Foto, länger drücken löscht es. Beim ersten Mal „Alle zulassen“ wählen.
+- **Größe einstellen:** In der App zwischen Klein, Mittel und Groß wählen, auf Wunsch auch etwas durchsichtig.
+- **Verschieben:** Finger auf dem Knopf halten und schieben.
+- **Kurz verstecken:** Knopf ganz nach unten ziehen und loslassen. Nach einer Minute ist er wieder da, oder sofort, wenn man die App öffnet.
+- Die Lautstärke des Klicks stellt man mit den normalen Lautstärketasten ein.

@@ -38,6 +38,9 @@ import java.util.concurrent.Executors;
 public class FotosActivity extends Activity {
 
     private static final int REQ = 7;
+    private static final int REQ_LOESCHEN = 8;
+    private static final int REQ_SCHREIBEN = 9;
+    private Uri wartet;
     private final List<Uri> fotos = new ArrayList<>();
     private final ExecutorService pool = Executors.newFixedThreadPool(2);
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -76,7 +79,7 @@ public class FotosActivity extends Activity {
         box.addView(titel);
 
         TextView sub = new TextView(this);
-        sub.setText("Das neueste ist oben links. Antippen zum Ansehen oder Verschicken.");
+        sub.setText("Das neueste ist oben links.\nAntippen: ansehen oder verschicken.\nLänger drücken: löschen.");
         sub.setTextSize(19);
         sub.setTextColor(0xFF555555);
         sub.setPadding(0, 0, 0, pad);
@@ -109,6 +112,10 @@ public class FotosActivity extends Activity {
         adapter = new Adapter();
         grid.setAdapter(adapter);
         grid.setOnItemClickListener((p, v, pos, id) -> oeffnen(fotos.get(pos)));
+        grid.setOnItemLongClickListener((p, v, pos, id) -> {
+            loeschenFragen(fotos.get(pos));
+            return true;
+        });
         box.addView(grid, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
         setContentView(box);
@@ -158,6 +165,13 @@ public class FotosActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(int code, String[] p, int[] r) {
+        if (code == REQ_SCHREIBEN) {
+            if (wartet != null && r.length > 0 && r[0] == PackageManager.PERMISSION_GRANTED) {
+                Uri u = wartet; wartet = null;
+                loeschen(u);
+            }
+            return;
+        }
         if (code != REQ) return;
         if (hatZugriff()) {
             laden();
@@ -199,6 +213,68 @@ public class FotosActivity extends Activity {
             });
         });
     }
+
+    // ---------- Löschen ----------
+
+    private void loeschenFragen(Uri uri) {
+        if (Build.VERSION.SDK_INT >= 30) {
+            // Android fragt selbst nach ("Zulassen?") und legt das Foto in den Papierkorb.
+            try {
+                List<Uri> l = new ArrayList<>();
+                l.add(uri);
+                android.app.PendingIntent pi = MediaStore.createTrashRequest(getContentResolver(), l, true);
+                startIntentSenderForResult(pi.getIntentSender(), REQ_LOESCHEN, null, 0, 0, 0);
+            } catch (Exception e) {
+                Toast.makeText(this, "Löschen geht gerade nicht.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Dieses Foto löschen?")
+                .setMessage("Das Bildschirmfoto wird vom Handy gelöscht.")
+                .setPositiveButton("Ja, löschen", (dlg, w) -> loeschen(uri))
+                .setNegativeButton("Nein, behalten", null)
+                .show();
+    }
+
+    private void loeschen(Uri uri) {
+        try {
+            getContentResolver().delete(uri, null, null);
+            geloescht();
+        } catch (SecurityException e) {
+            if (Build.VERSION.SDK_INT == 29 && e instanceof android.app.RecoverableSecurityException) {
+                wartet = uri;
+                try {
+                    startIntentSenderForResult(((android.app.RecoverableSecurityException) e)
+                            .getUserAction().getActionIntent().getIntentSender(), REQ_LOESCHEN, null, 0, 0, 0);
+                } catch (Exception ignored) { }
+            } else if (Build.VERSION.SDK_INT <= 28) {
+                wartet = uri;
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_SCHREIBEN);
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Löschen geht gerade nicht.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void geloescht() {
+        Toast.makeText(this, "Foto gelöscht.", Toast.LENGTH_SHORT).show();
+        laden();
+    }
+
+    @Override
+    protected void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code != REQ_LOESCHEN || result != RESULT_OK) return;
+        if (Build.VERSION.SDK_INT >= 30) {
+            geloescht();
+        } else if (wartet != null) {
+            Uri u = wartet; wartet = null;
+            loeschen(u);
+        }
+    }
+
+    // ---------- Ansehen ----------
 
     private void oeffnen(Uri uri) {
         Intent i = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, "image/*")

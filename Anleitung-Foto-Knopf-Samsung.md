@@ -96,7 +96,7 @@ Der Foto-Knopf funktioniert danach weiter.
 
 1. **Lautstärke-Taste nach oben** drücken, damit man den Klick hört.
 2. WhatsApp öffnen und **einmal auf den roten Knopf** tippen.
-3. Es **klickt** und **vibriert**. Das Foto ist gespeichert.
+3. Es **klickt** und **vibriert**. Das Foto ist gespeichert. Oben erscheint kurz der grüne Knopf **„Verschicken“**.
 4. Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“**. Beim ersten Mal fragt das Handy nach dem Zugriff auf Fotos: **„Alle zulassen“** wählen.
    Jetzt sieht man alle Bildschirmfotos, das neueste oben links.
 
@@ -106,19 +106,25 @@ Der Foto-Knopf funktioniert danach weiter.
 
 | Was möchte ich? | So geht's |
 |---|---|
-| **Bildschirmfoto machen** | Einmal auf den roten Kamera-Knopf tippen |
+| **Bildschirmfoto machen** | Einmal auf den roten Kamera-Knopf tippen. Es klickt. |
+| **Foto sofort verschicken** | Direkt danach oben auf den grünen Knopf **„Verschicken“** tippen → **WhatsApp** → Empfänger wählen. Der grüne Knopf bleibt etwa 8 Sekunden. |
+| **Fotos ansehen** | Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“** |
+| **Älteres Foto verschicken** | In „Meine Bildschirmfotos“ das Foto antippen → **Teilen** → WhatsApp |
+| **Foto löschen** | In „Meine Bildschirmfotos“ das Foto **länger drücken** → mit **„Zulassen“** bestätigen. Es kommt in den Papierkorb. |
+| **Knopf größer oder kleiner** | Foto-Knopf-App öffnen → **Klein / Mittel / Groß** antippen |
+| **Knopf soll weniger stören** | Foto-Knopf-App öffnen → **„Etwas durchsichtig“** antippen |
 | **Knopf woanders hinschieben** | Finger auf dem Knopf lassen und verschieben |
+| **Knopf kurz verstecken** (z. B. beim Video) | Knopf **ganz nach unten ziehen** und loslassen. Nach 1 Minute ist er wieder da, oder sofort, wenn man die Foto-Knopf-App öffnet. |
 | **Klick lauter oder leiser** | Lautstärketasten an der Seite |
-| **Fotos ansehen** | Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“** (oder Galerie → Alben → **Screenshots**) |
-| **Foto verschicken** | In „Meine Bildschirmfotos“ das Foto antippen → **Teilen** → WhatsApp. Oder in WhatsApp auf die Büroklammer 📎 → **Galerie** |
 
 ## Wenn etwas nicht klappt
 
 | Problem | Lösung |
 |---|---|
-| Kein roter Knopf zu sehen | Foto-Knopf-App öffnen. Steht dort „noch aus“: Schritt 7 wiederholen. |
+| Kein roter Knopf zu sehen | Foto-Knopf-App öffnen, dann kommt ein versteckter Knopf sofort zurück. Steht dort „noch aus“: Schritt 7 wiederholen. |
 | Knopf ist nach einiger Zeit weg | Schritt 8 erledigen. Dann in der Eingabehilfe Foto-Knopf einmal aus- und wieder einschalten. |
 | Kein Klick zu hören | Lautstärke nach oben drücken. Das Handy vibriert trotzdem, wenn es geklappt hat. |
 | „Das Foto hat leider nicht geklappt“ | Kurz warten und noch einmal tippen. Manche Apps (z. B. Banking) verbieten Bildschirmfotos. |
 | „Meine Bildschirmfotos“ ist leer oder zeigt nur wenige | Einstellungen → Apps → Foto-Knopf → Berechtigungen → **Fotos und Videos** → **„Immer alle zulassen“** |
+| „Verschicken“ öffnet nur die Fotos-Seite | Einmal **„Alle zulassen“** wählen. Danach öffnet „Verschicken“ direkt WhatsApp & Co. |
 | Installation wird blockiert | Schritt 1 und 2 prüfen: Automatische Sperre und Play Protect müssen kurz aus sein. |

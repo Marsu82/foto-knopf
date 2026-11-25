@@ -3,11 +3,13 @@ package de.fotoknopf;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -19,6 +21,9 @@ public class MainActivity extends Activity {
 
     private TextView status;
     private TextView anleitung;
+    private LinearLayout einstellungen;
+    private final Button[] groesse = new Button[3];
+    private Button durchsichtig;
     private Button einschalten;
     private float d;
 
@@ -55,6 +60,43 @@ public class MainActivity extends Activity {
         galerie.setOnClickListener(v -> startActivity(new Intent(this, FotosActivity.class)));
         box.addView(galerie);
 
+        einstellungen = new LinearLayout(this);
+        einstellungen.setOrientation(LinearLayout.VERTICAL);
+        einstellungen.setPadding(0, pad / 2, 0, 0);
+        TextView gTitel = text("Größe des Knopfes", 22, 0xFF212121);
+        gTitel.setTypeface(Typeface.DEFAULT_BOLD);
+        gTitel.setPadding(0, 0, 0, (int) (8 * d));
+        einstellungen.addView(gTitel);
+        LinearLayout reihe = new LinearLayout(this);
+        reihe.setOrientation(LinearLayout.HORIZONTAL);
+        String[] namen = {"Klein", "Mittel", "Groß"};
+        for (int i = 0; i < 3; i++) {
+            final int g = i;
+            Button wahl = auswahl(namen[i]);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, (int) (72 * d), 1f);
+            if (i > 0) lp.leftMargin = (int) (10 * d);
+            wahl.setLayoutParams(lp);
+            wahl.setOnClickListener(v -> {
+                prefs().edit().putInt(FotoService.GROESSE, g).apply();
+                auswahlAnzeigen();
+            });
+            groesse[i] = wahl;
+            reihe.addView(wahl);
+        }
+        einstellungen.addView(reihe);
+        durchsichtig = auswahl("");
+        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (72 * d));
+        dlp.topMargin = (int) (12 * d);
+        durchsichtig.setLayoutParams(dlp);
+        durchsichtig.setOnClickListener(v -> {
+            boolean an = !prefs().getBoolean(FotoService.DURCHSICHTIG, false);
+            prefs().edit().putBoolean(FotoService.DURCHSICHTIG, an).apply();
+            auswahlAnzeigen();
+        });
+        einstellungen.addView(durchsichtig);
+        box.addView(einstellungen);
+
         anleitung = text("", 21, 0xFF424242);
         anleitung.setPadding(0, pad, 0, 0);
         anleitung.setLineSpacing(0, 1.2f);
@@ -69,6 +111,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Falls der Knopf gerade versteckt ist: beim Öffnen der App sofort zurückholen.
+        FotoService.knopfZurueckholen();
+        auswahlAnzeigen();
+        einstellungen.setVisibility(istEingeschaltet() ? View.VISIBLE : View.GONE);
         if (istEingeschaltet()) {
             status.setText("✅  Der Foto-Knopf ist an.");
             status.setTextColor(0xFF2E7D32);
@@ -76,10 +122,13 @@ public class MainActivity extends Activity {
             anleitung.setText(
                     "So geht's:\n\n" +
                     "1.  Öffnen Sie WhatsApp, Instagram oder eine andere App.\n\n" +
-                    "2.  Tippen Sie einmal auf den runden Knopf mit der Kamera.\n\n" +
-                    "3.  Es klickt – fertig! Ansehen können Sie die Fotos über den blauen Knopf „Meine Bildschirmfotos“.\n\n" +
-                    "Tipp: Wenn der Knopf im Weg ist, den Finger darauf halten " +
-                    "und an eine andere Stelle schieben.");
+                    "2.  Tippen Sie einmal auf den runden Knopf mit der Kamera. Es klickt.\n\n" +
+                    "3.  Oben erscheint kurz der grüne Knopf „Verschicken“. Antippen, " +
+                    "dann WhatsApp und den Empfänger auswählen.\n\n" +
+                    "Alle Fotos finden Sie über den blauen Knopf „Meine Bildschirmfotos“.\n\n" +
+                    "Knopf verschieben: Finger darauf halten und schieben.\n\n" +
+                    "Knopf verstecken: ganz nach unten ziehen und loslassen. " +
+                    "Nach einer Minute ist er wieder da. Oder einfach diese App öffnen.");
         } else {
             status.setText("Der Foto-Knopf ist noch aus.");
             status.setTextColor(0xFFC62828);
@@ -104,6 +153,36 @@ public class MainActivity extends Activity {
             if (me.equals(c)) return true;
         }
         return false;
+    }
+
+    private SharedPreferences prefs() {
+        return getSharedPreferences(FotoService.PREFS, MODE_PRIVATE);
+    }
+
+    private Button auswahl(String s) {
+        Button b = new Button(this);
+        b.setText(s);
+        b.setAllCaps(false);
+        b.setTextSize(21);
+        b.setTypeface(Typeface.DEFAULT_BOLD);
+        return b;
+    }
+
+    private void auswahlFaerben(Button b, boolean aktiv) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(16 * d);
+        bg.setColor(aktiv ? 0xFFE53935 : 0xFFFFFFFF);
+        bg.setStroke((int) (2 * d), aktiv ? 0xFFE53935 : 0xFFBDBDBD);
+        b.setBackground(bg);
+        b.setTextColor(aktiv ? 0xFFFFFFFF : 0xFF424242);
+    }
+
+    private void auswahlAnzeigen() {
+        int g = prefs().getInt(FotoService.GROESSE, 1);
+        for (int i = 0; i < 3; i++) auswahlFaerben(groesse[i], i == g);
+        boolean an = prefs().getBoolean(FotoService.DURCHSICHTIG, false);
+        durchsichtig.setText(an ? "Etwas durchsichtig: AN" : "Etwas durchsichtig: AUS");
+        auswahlFaerben(durchsichtig, an);
     }
 
     private TextView text(String s, int sp, int color) {
