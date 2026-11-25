@@ -4,7 +4,10 @@ import android.accessibilityservice.AccessibilityService;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.GradientDrawable;
-import android.media.MediaActionSound;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+import android.os.Build;
+import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.Handler;
@@ -15,6 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 /**
  * Zeigt einen großen, verschiebbaren Knopf über allen Apps.
@@ -26,13 +30,21 @@ public class FotoService extends AccessibilityService {
     private ImageView knopf;
     private WindowManager.LayoutParams lp;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private MediaActionSound klick;
+    private SoundPool sounds;
+    private int klickId;
 
     @Override
     protected void onServiceConnected() {
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-        klick = new MediaActionSound();
-        klick.load(MediaActionSound.SHUTTER_CLICK);
+        // Eigener Klick-Ton über die normale Medien-Lautstärke (Lautstärketasten).
+        sounds = new SoundPool.Builder()
+                .setMaxStreams(2)
+                .setAudioAttributes(new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build())
+                .build();
+        klickId = sounds.load(this, R.raw.klick, 1);
         float d = getResources().getDisplayMetrics().density;
         int size = (int) (76 * d);
 
@@ -104,16 +116,31 @@ public class FotoService extends AccessibilityService {
         handler.postDelayed(() -> {
             boolean ok = performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT);
             if (ok) {
-                // Kamera-Klick, damit man hört, dass das Foto gemacht wurde.
-                klick.play(MediaActionSound.SHUTTER_CLICK);
-                // Kurzes Vibrieren, falls das Handy auf lautlos steht.
-                Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-                if (v != null && v.hasVibrator()) {
-                    v.vibrate(VibrationEffect.createOneShot(80, VibrationEffect.DEFAULT_AMPLITUDE));
-                }
+                rueckmeldung();
+            } else {
+                Toast.makeText(this, "Das Foto hat leider nicht geklappt.", Toast.LENGTH_LONG).show();
             }
             handler.postDelayed(() -> knopf.setVisibility(View.VISIBLE), 1500);
         }, 250);
+    }
+
+    /** Klick-Ton und kurzes Vibrieren, damit man merkt: Foto ist gemacht. */
+    private void rueckmeldung() {
+        try {
+            sounds.play(klickId, 1f, 1f, 1, 0, 1f);
+        } catch (Exception ignored) { }
+        try {
+            Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            if (v == null || !v.hasVibrator()) return;
+            VibrationEffect effekt = VibrationEffect.createOneShot(120, VibrationEffect.DEFAULT_AMPLITUDE);
+            if (Build.VERSION.SDK_INT >= 33) {
+                // Als Bedienungshilfe kennzeichnen, sonst blendet Android sie im Hintergrund aus.
+                v.vibrate(effekt, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ACCESSIBILITY));
+            } else {
+                v.vibrate(effekt, new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).build());
+            }
+        } catch (Exception ignored) { }
     }
 
     @Override
@@ -124,7 +151,7 @@ public class FotoService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        if (klick != null) klick.release();
+        if (sounds != null) sounds.release();
         if (knopf != null && wm != null) {
             try { wm.removeView(knopf); } catch (Exception ignored) { }
         }
