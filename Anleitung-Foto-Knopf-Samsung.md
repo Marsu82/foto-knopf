@@ -74,7 +74,7 @@ Neuere Samsung-Handys (One UI 6 und neuer) blockieren Apps, die nicht aus dem Pl
 2. Schalter **einschalten** → **„Zulassen“** tippen.
 
 > Android warnt, die App bekomme „volle Kontrolle“. Diese Warnung kommt bei jeder Eingabehilfe-App.
-> Der Foto-Knopf zeigt nur den Knopf an und macht Bildschirmfotos, sonst nichts. Er hat keinen Internetzugriff.
+> Der Foto-Knopf zeigt nur den Knopf an und macht Bildschirmfotos, sonst nichts. Er liest keine Inhalte und sendet keine Daten. Ins Internet geht er nur, um nach Updates zu schauen.
 
 Jetzt erscheint der **rote Kamera-Knopf** am rechten Bildschirmrand.
 
@@ -93,11 +93,24 @@ Damit Fotos mit **einem Tipp** im WhatsApp-Chat mit dir landen:
 2. **„Person auswählen“** tippen → **deinen Kontakt** auswählen.
 3. Fertig. Nach jedem Foto erscheint jetzt oben der grüne Knopf **„An [dein Name] schicken“**.
 
+## Schritt 8c: Updates einrichten
+
+Damit der Foto-Knopf von selbst Bescheid sagt, wenn es eine neue Version gibt:
+
+1. Foto-Knopf-App öffnen → ganz nach unten zu **„Updates“** → **„Updates einrichten“** tippen.
+2. Frage nach Benachrichtigungen → **„Zulassen“**.
+3. Es öffnet sich **„Unbekannte Apps installieren“** → Schalter **„Von dieser Quelle zulassen“** einschalten → **Zurück**.
+4. Dort steht jetzt *„Updates sind eingerichtet“*.
+
+**So läuft ein Update später:** Oben erscheint die Benachrichtigung *„Neue Version vom Foto-Knopf“* → antippen → Android fragt *„Aktualisieren?“* → **„Aktualisieren“** tippen. Fertig, alle Einstellungen bleiben.
+
 ## Schritt 9: Schutz wieder einschalten (wichtig!)
 
 1. **Play Store** → Profilbild → **Play Protect** → Zahnrad → **„Apps mit Play Protect scannen“** wieder **einschalten**.
    Kommt eine Meldung zum Foto-Knopf: **„App behalten“** wählen.
-2. **Einstellungen** → **Sicherheit und Datenschutz** → **Automatische Sperre** wieder **einschalten** (falls in Schritt 1 ausgeschaltet).
+2. **Automatische Sperre** (falls in Schritt 1 ausgeschaltet): Sie **blockiert leider auch die Updates** vom Foto-Knopf. Zwei Möglichkeiten:
+   - **Aus lassen**, dann funktionieren die Updates von selbst. Play Protect schützt das Handy weiterhin.
+   - **Wieder einschalten** (Einstellungen → Sicherheit und Datenschutz → Automatische Sperre). Für ein Update musst du sie dann kurz ausschalten.
 
 Der Foto-Knopf funktioniert danach weiter.
 
@@ -142,4 +155,5 @@ Der Foto-Knopf funktioniert danach weiter.
 | „Verschicken“ öffnet nur die Fotos-Seite | Einmal **„Alle zulassen“** wählen. Danach öffnet „Verschicken“ direkt WhatsApp & Co. |
 | „An … schicken“ öffnet WhatsApp, aber nicht den richtigen Chat | In der App **„Andere Person wählen“** und den Kontakt neu auswählen. Notfalls den blauen Knopf „Jemand anderem schicken …“ nehmen. |
 | Knopf zeigt eine Zahl 3, 2, 1 | Das ist der Selbstauslöser (Finger war lange auf dem Knopf). Einfach warten oder nochmal tippen zum Abbrechen. |
+| Update kommt nicht / „Update blockiert“ | Automatische Sperre kurz ausschalten (Schritt 9), dann in der App **„Jetzt nach Updates suchen“** tippen |
 | Installation wird blockiert | Schritt 1 und 2 prüfen: Automatische Sperre und Play Protect müssen kurz aus sein. |

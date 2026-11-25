@@ -4,7 +4,7 @@ Eine ganz einfache Android-App für Bildschirmfotos: Ein großer roter Knopf lie
 
 ## ⬇️ Herunterladen
 
-**[Foto-Knopf.apk herunterladen](download/Foto-Knopf.apk?raw=1)** (Version 1.5)
+**[Foto-Knopf.apk herunterladen](download/Foto-Knopf.apk?raw=1)** (Version 1.6)
 
 Falls die neue Version Probleme macht: [Vorherige Version 1.4](download/Foto-Knopf-1.4.apk?raw=1). Zum Zurückwechseln muss man die App vorher deinstallieren.
 
@@ -19,7 +19,8 @@ Falls die neue Version Probleme macht: [Vorherige Version 1.4](download/Foto-Kno
 
 ## Gut zu wissen
 
-- Ab Android 9. Kostenlos, ohne Werbung, ohne Internet-Zugriff.
+- Ab Android 9. Kostenlos, ohne Werbung. Die App sendet keine Daten. Sie lädt nur einmal am Tag die kleine Datei `download/version.json`, um nach Updates zu schauen.
+- **Updates:** Gibt es eine neue Version, erscheint eine Benachrichtigung. Antippen, dann „Aktualisieren“. Einmalig in der App „Updates einrichten“ tippen.
 - **Foto machen:** einmal auf den roten Knopf tippen. Es klickt und vibriert kurz.
 - **Sofort verschicken:** Nach dem Foto erscheinen oben für ein paar Sekunden große Knöpfe. „An … schicken“ öffnet direkt den WhatsApp-Chat mit der eingestellten Person, „Verschicken …“ lässt einen Empfänger wählen.
 - **Person festlegen:** In der App unter „Schnell an eine Person schicken“ → „Person auswählen“ einen Kontakt wählen.
@@ -30,3 +31,11 @@ Falls die neue Version Probleme macht: [Vorherige Version 1.4](download/Foto-Kno
 - **Verschieben:** Finger auf dem Knopf halten und schieben.
 - **Kurz verstecken:** Knopf ganz nach unten ziehen und loslassen. Nach einer Minute ist er wieder da, oder sofort, wenn man die App öffnet.
 - Die Lautstärke des Klicks stellt man mit den normalen Lautstärketasten ein.
+
+## Neue Version veröffentlichen (für Entwickler)
+
+1. In `app/build.gradle` `versionCode` um 1 erhöhen und `versionName` anpassen.
+2. Mit dem Original-Signaturschlüssel bauen (`keystore.properties`, liegt nicht im Projekt).
+3. Die APK nach `download/Foto-Knopf.apk` kopieren.
+4. In `download/version.json` `versionCode` und `versionName` auf die neuen Werte setzen.
+5. Alles zusammen hochladen. Die installierten Apps melden sich innerhalb eines Tages.

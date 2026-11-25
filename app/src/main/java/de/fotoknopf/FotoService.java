@@ -100,7 +100,16 @@ public class FotoService extends AccessibilityService
         knopfBauen();
         ablageBauen();
         verschickenBauen();
+        handler.post(updateCheck);
     }
+
+    /** Alle 3 Stunden nachsehen, ob die tägliche Update-Prüfung fällig ist. */
+    private final Runnable updateCheck = new Runnable() {
+        @Override public void run() {
+            Aktualisierung.taeglichPruefen(FotoService.this);
+            handler.postDelayed(this, 3L * 60 * 60 * 1000);
+        }
+    };
 
     // ---------- Der rote Knopf ----------
 

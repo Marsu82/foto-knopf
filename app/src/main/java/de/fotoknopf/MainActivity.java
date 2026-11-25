@@ -1,12 +1,16 @@
 package de.fotoknopf;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.Settings;
@@ -15,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +31,11 @@ public class MainActivity extends Activity {
     private LinearLayout einstellungen;
     private final Button[] groesse = new Button[3];
     private Button durchsichtig;
+    private Button updateBanner, updatesEinrichten;
+    private TextView updateStatus;
+    private Aktualisierung.Neu neu;
+    private boolean installNachErlaubnis;
+    private static final int REQ_NOTIF = 4;
     private TextView personText;
     private Button person, personWeg;
     private static final int REQ_KONTAKT = 3;
@@ -47,6 +57,13 @@ public class MainActivity extends Activity {
         titel.setTypeface(Typeface.DEFAULT_BOLD);
         titel.setGravity(Gravity.CENTER);
         box.addView(titel);
+
+        updateBanner = knopf("⬇  Neue Version – jetzt aktualisieren", 0xFFEF6C00);
+        LinearLayout.LayoutParams ulp = (LinearLayout.LayoutParams) updateBanner.getLayoutParams();
+        ulp.topMargin = pad;
+        updateBanner.setVisibility(View.GONE);
+        updateBanner.setOnClickListener(v -> updateStarten());
+        box.addView(updateBanner);
 
         status = text("", 24, 0xFF212121);
         status.setGravity(Gravity.CENTER);
@@ -138,6 +155,27 @@ public class MainActivity extends Activity {
         erklaerung.setOnClickListener(v -> startActivity(new Intent(this, WillkommenActivity.class)));
         box.addView(erklaerung);
 
+        TextView uTitel = text("Updates", 22, 0xFF212121);
+        uTitel.setTypeface(Typeface.DEFAULT_BOLD);
+        uTitel.setPadding(0, pad, 0, (int) (6 * d));
+        box.addView(uTitel);
+        updateStatus = text("", 19, 0xFF555555);
+        updateStatus.setPadding(0, 0, 0, (int) (10 * d));
+        box.addView(updateStatus);
+        updatesEinrichten = auswahl("Updates einrichten");
+        updatesEinrichten.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (72 * d)));
+        updatesEinrichten.setOnClickListener(v -> updatesEinrichten());
+        box.addView(updatesEinrichten);
+        Button suchen = auswahl("Jetzt nach Updates suchen");
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (64 * d));
+        slp.topMargin = (int) (10 * d);
+        suchen.setLayoutParams(slp);
+        auswahlFaerben(suchen, false);
+        suchen.setOnClickListener(v -> updateSuchen(true, false));
+        box.addView(suchen);
+
         if (!prefs().getBoolean(WillkommenActivity.GESEHEN, false)) {
             startActivity(new Intent(this, WillkommenActivity.class));
         }
@@ -146,6 +184,17 @@ public class MainActivity extends Activity {
         sv.setBackgroundColor(0xFFFFFFFF);
         sv.addView(box);
         setContentView(sv);
+
+        if (getIntent().getBooleanExtra(Aktualisierung.EXTRA_UPDATE, false)) {
+            updateSuchen(true, true);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent.getBooleanExtra(Aktualisierung.EXTRA_UPDATE, false)) updateSuchen(true, true);
     }
 
     @Override
@@ -155,6 +204,13 @@ public class MainActivity extends Activity {
         FotoService.knopfZurueckholen();
         auswahlAnzeigen();
         personAnzeigen();
+        updatesAnzeigen();
+        if (installNachErlaubnis && getPackageManager().canRequestPackageInstalls()) {
+            installNachErlaubnis = false;
+            updateStarten();
+        } else {
+            updateSuchen(false, false);
+        }
         einstellungen.setVisibility(istEingeschaltet() ? View.VISIBLE : View.GONE);
         if (istEingeschaltet()) {
             status.setText("✅  Der Foto-Knopf ist an.");
@@ -196,6 +252,104 @@ public class MainActivity extends Activity {
             if (me.equals(c)) return true;
         }
         return false;
+    }
+
+    // ---------- Updates ----------
+
+    private boolean benachrichtigungenErlaubt() {
+        return Build.VERSION.SDK_INT < 33
+                || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void updatesAnzeigen() {
+        boolean ok = benachrichtigungenErlaubt() && getPackageManager().canRequestPackageInstalls();
+        updatesEinrichten.setVisibility(ok ? View.GONE : View.VISIBLE);
+        auswahlFaerben(updatesEinrichten, true);
+        String v = "Version " + versionName();
+        if (neu != null) {
+            updateStatus.setText(v + ". Neue Version " + neu.name + " ist da.");
+        } else if (ok) {
+            updateStatus.setText(v + ". Updates sind eingerichtet: Die App meldet sich, wenn es etwas Neues gibt.");
+        } else {
+            updateStatus.setText(v + ". Bitte einmal „Updates einrichten“ tippen, damit die App Bescheid sagt, wenn es etwas Neues gibt.");
+        }
+    }
+
+    private String versionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private void updatesEinrichten() {
+        if (!benachrichtigungenErlaubt()) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF);
+            return;
+        }
+        if (!getPackageManager().canRequestPackageInstalls()) {
+            Toast.makeText(this, "Bitte „Dieser Quelle vertrauen“ einschalten und dann zurück.",
+                    Toast.LENGTH_LONG).show();
+            Aktualisierung.installierenErlaubt(this, true);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] p, int[] r) {
+        if (code != REQ_NOTIF) return;
+        updatesAnzeigen();
+        if (!getPackageManager().canRequestPackageInstalls()) updatesEinrichten();
+    }
+
+    private void updateSuchen(boolean manuell, boolean direktInstallieren) {
+        if (manuell) updateStatus.setText("Suche nach Updates …");
+        Aktualisierung.pruefen(this, (n, fehler) -> {
+            if (isFinishing()) return;
+            neu = n;
+            updateBanner.setVisibility(n != null ? View.VISIBLE : View.GONE);
+            if (n != null) updateBanner.setText("⬇  Neue Version " + n.name + " – jetzt aktualisieren");
+            updatesAnzeigen();
+            if (manuell && n == null) {
+                Toast.makeText(this, fehler ? "Keine Internetverbindung. Bitte später nochmal versuchen."
+                        : "Alles aktuell. Es gibt keine neue Version.", Toast.LENGTH_LONG).show();
+            }
+            if (direktInstallieren && n != null) updateStarten();
+        });
+    }
+
+    private void updateStarten() {
+        if (neu == null) { updateSuchen(true, true); return; }
+        if (!Aktualisierung.installierenErlaubt(this, false)) {
+            installNachErlaubnis = true;
+            Toast.makeText(this, "Einmalig: Bitte „Dieser Quelle vertrauen“ einschalten und dann zurück.",
+                    Toast.LENGTH_LONG).show();
+            Aktualisierung.installierenErlaubt(this, true);
+            return;
+        }
+        ProgressBar balken = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        balken.setMax(100);
+        int p = (int) (24 * d);
+        balken.setPadding(p, p, p, p);
+        AlertDialog dlg = new AlertDialog.Builder(this)
+                .setTitle("Update wird geladen …")
+                .setView(balken)
+                .setCancelable(false)
+                .show();
+        updateBanner.setEnabled(false);
+        Aktualisierung.installieren(this, neu, pr -> {
+            balken.setProgress(pr);
+            if (pr >= 100) {
+                // Geladen: Ab hier übernimmt Android (ggf. mit der Frage „Aktualisieren?“).
+                dlg.dismiss();
+                updateBanner.setEnabled(true);
+            }
+        }, (n, fehler) -> {
+            if (dlg.isShowing()) dlg.dismiss();
+            updateBanner.setEnabled(true);
+            Toast.makeText(this, "Das Update konnte nicht geladen werden. Bitte später nochmal versuchen.",
+                    Toast.LENGTH_LONG).show();
+        });
     }
 
     // ---------- Person für "An ... schicken" ----------

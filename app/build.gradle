@@ -6,8 +6,8 @@ android {
         applicationId 'de.fotoknopf'
         minSdk 28
         targetSdk 35
-        versionCode 6
-        versionName '1.5'
+        versionCode 7
+        versionName '1.6'
     }
     // Signatur-Schlüssel liegt NICHT im Projekt. Pfad und Passwörter stehen in
     // keystore.properties (wird nicht hochgeladen). Ohne diese Datei: Debug-Schlüssel.
