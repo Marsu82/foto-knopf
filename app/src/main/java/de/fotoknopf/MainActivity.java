@@ -5,9 +5,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -53,8 +51,8 @@ public class MainActivity extends Activity {
         });
         box.addView(einschalten);
 
-        Button galerie = knopf("Meine Fotos ansehen", 0xFF1E88E5);
-        galerie.setOnClickListener(v -> galerieOeffnen());
+        Button galerie = knopf("Meine Bildschirmfotos", 0xFF1E88E5);
+        galerie.setOnClickListener(v -> startActivity(new Intent(this, FotosActivity.class)));
         box.addView(galerie);
 
         anleitung = text("", 21, 0xFF424242);
@@ -79,7 +77,7 @@ public class MainActivity extends Activity {
                     "So geht's:\n\n" +
                     "1.  Öffnen Sie WhatsApp, Instagram oder eine andere App.\n\n" +
                     "2.  Tippen Sie einmal auf den runden Knopf mit der Kamera.\n\n" +
-                    "3.  Fertig! Das Foto ist in Ihrer Galerie gespeichert.\n\n" +
+                    "3.  Es klickt – fertig! Ansehen können Sie die Fotos über den blauen Knopf „Meine Bildschirmfotos“.\n\n" +
                     "Tipp: Wenn der Knopf im Weg ist, den Finger darauf halten " +
                     "und an eine andere Stelle schieben.");
         } else {
@@ -106,21 +104,6 @@ public class MainActivity extends Activity {
             if (me.equals(c)) return true;
         }
         return false;
-    }
-
-    private void galerieOeffnen() {
-        Intent[] versuche = {
-                Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_GALLERY),
-                new Intent(Intent.ACTION_VIEW, MediaStore.Images.Media.EXTERNAL_CONTENT_URI),
-                new Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse("content://media/external/images/media"), "image/*")
-        };
-        for (Intent i : versuche) {
-            try {
-                startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                return;
-            } catch (Exception ignored) { }
-        }
-        Toast.makeText(this, "Bitte die App „Galerie“ oder „Fotos“ öffnen.", Toast.LENGTH_LONG).show();
     }
 
     private TextView text(String s, int sp, int color) {

@@ -19,4 +19,5 @@ Eine ganz einfache Android-App für Bildschirmfotos: Ein großer roter Knopf lie
 
 - Ab Android 9. Kostenlos, ohne Werbung, ohne Internet-Zugriff.
 - Der Knopf lässt sich mit dem Finger verschieben.
+- Der blaue Knopf „Meine Bildschirmfotos“ in der App zeigt alle Screenshots, das neueste zuerst. Beim ersten Mal „Alle zulassen“ wählen.
 - Nach jedem Foto ertönt ein Kamera-Klick und das Handy vibriert kurz. Die Lautstärke des Klicks stellt man mit den normalen Lautstärketasten ein (Medien-Lautstärke).

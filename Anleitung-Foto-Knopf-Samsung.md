@@ -96,7 +96,9 @@ Der Foto-Knopf funktioniert danach weiter.
 
 1. **Lautstärke-Taste nach oben** drücken, damit man den Klick hört.
 2. WhatsApp öffnen und **einmal auf den roten Knopf** tippen.
-3. Es **klickt** und **vibriert**. Das Foto ist in der **Galerie** (Album *„Screenshots“*).
+3. Es **klickt** und **vibriert**. Das Foto ist gespeichert.
+4. Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“**. Beim ersten Mal fragt das Handy nach dem Zugriff auf Fotos: **„Alle zulassen“** wählen.
+   Jetzt sieht man alle Bildschirmfotos, das neueste oben links.
 
 ---
 
@@ -107,8 +109,8 @@ Der Foto-Knopf funktioniert danach weiter.
 | **Bildschirmfoto machen** | Einmal auf den roten Kamera-Knopf tippen |
 | **Knopf woanders hinschieben** | Finger auf dem Knopf lassen und verschieben |
 | **Klick lauter oder leiser** | Lautstärketasten an der Seite |
-| **Fotos ansehen** | App **Galerie** → Album **Screenshots**, oder in der Foto-Knopf-App auf **„Meine Fotos ansehen“** tippen |
-| **Foto verschicken** | In WhatsApp auf die Büroklammer 📎 → **Galerie** → Foto auswählen |
+| **Fotos ansehen** | Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“** (oder Galerie → Alben → **Screenshots**) |
+| **Foto verschicken** | In „Meine Bildschirmfotos“ das Foto antippen → **Teilen** → WhatsApp. Oder in WhatsApp auf die Büroklammer 📎 → **Galerie** |
 
 ## Wenn etwas nicht klappt
 
@@ -118,4 +120,5 @@ Der Foto-Knopf funktioniert danach weiter.
 | Knopf ist nach einiger Zeit weg | Schritt 8 erledigen. Dann in der Eingabehilfe Foto-Knopf einmal aus- und wieder einschalten. |
 | Kein Klick zu hören | Lautstärke nach oben drücken. Das Handy vibriert trotzdem, wenn es geklappt hat. |
 | „Das Foto hat leider nicht geklappt“ | Kurz warten und noch einmal tippen. Manche Apps (z. B. Banking) verbieten Bildschirmfotos. |
+| „Meine Bildschirmfotos“ ist leer oder zeigt nur wenige | Einstellungen → Apps → Foto-Knopf → Berechtigungen → **Fotos und Videos** → **„Immer alle zulassen“** |
 | Installation wird blockiert | Schritt 1 und 2 prüfen: Automatische Sperre und Play Protect müssen kurz aus sein. |
