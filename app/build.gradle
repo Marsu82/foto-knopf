@@ -9,8 +9,26 @@ android {
         versionCode 6
         versionName '1.5'
     }
+    // Signatur-Schlüssel liegt NICHT im Projekt. Pfad und Passwörter stehen in
+    // keystore.properties (wird nicht hochgeladen). Ohne diese Datei: Debug-Schlüssel.
+    def ksFile = rootProject.file('keystore.properties')
+    def ks = new Properties()
+    if (ksFile.exists()) ks.load(new FileInputStream(ksFile))
+    signingConfigs {
+        fotoknopf {
+            if (ksFile.exists()) {
+                storeFile file(ks['storeFile'])
+                storePassword ks['storePassword']
+                keyAlias ks['keyAlias']
+                keyPassword ks['keyPassword']
+            }
+        }
+    }
     buildTypes {
-        release { minifyEnabled false; signingConfig signingConfigs.debug }
+        release {
+            minifyEnabled false
+            signingConfig ksFile.exists() ? signingConfigs.fotoknopf : signingConfigs.debug
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

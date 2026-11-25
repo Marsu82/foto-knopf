@@ -7,3 +7,6 @@ seite.template.html
 Foto-Knopf-Download.html
 QR-Code-Foto-Knopf.png
 /Foto-Knopf.apk
+keystore.properties
+*.keystore
+*.jks
