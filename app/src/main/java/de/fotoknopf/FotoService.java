@@ -27,7 +27,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,23 +44,30 @@ public class FotoService extends AccessibilityService
     static final String PREFS = "pos";
     static final String GROESSE = "groesse";       // 0 klein, 1 mittel, 2 groß
     static final String DURCHSICHTIG = "durchsichtig";
+    static final String PERSON_NAME = "person_name";
+    static final String PERSON_NUMMER = "person_nummer";
+    static final String[] WHATSAPP = {"com.whatsapp", "com.whatsapp.w4b"};
     private static final int[] GROESSE_DP = {60, 76, 100};
     private static final long VERSTECKT_MS = 60_000;
-    private static final long VERSCHICKEN_MS = 8_000;
+    private static final long VERSCHICKEN_MS = 10_000;
+    private static final long LANG_MS = 800;
 
     private static FotoService instanz;
 
     private WindowManager wm;
     private SharedPreferences prefs;
-    private ImageView knopf;
+    private FrameLayout knopf;
+    private TextView zahl;
     private WindowManager.LayoutParams lp;
-    private TextView ablage, verschicken;
+    private TextView ablage, anPerson, verschicken;
+    private LinearLayout leiste;
     private WindowManager.LayoutParams ablageLp, verschickenLp;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private SoundPool sounds;
     private int klickId;
     private float d;
     private boolean versteckt;
+    private int countdown;
     private long fotoZeit;
 
     private final Runnable zurueckholen = this::wiederZeigen;
@@ -102,8 +111,22 @@ public class FotoService extends AccessibilityService
 
     private void knopfBauen() {
         int size = knopfGroesse();
-        knopf = new ImageView(this);
-        knopf.setImageResource(R.drawable.ic_camera);
+        knopf = new FrameLayout(this);
+        ImageView bild = new ImageView(this);
+        bild.setImageResource(R.drawable.ic_camera);
+        knopf.addView(bild, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        zahl = new TextView(this);
+        zahl.setGravity(Gravity.CENTER);
+        zahl.setTypeface(Typeface.DEFAULT_BOLD);
+        zahl.setTextColor(0xFFFFFFFF);
+        GradientDrawable kreis = new GradientDrawable();
+        kreis.setShape(GradientDrawable.OVAL);
+        kreis.setColor(0xFFE53935);
+        zahl.setBackground(kreis);
+        zahl.setVisibility(View.GONE);
+        knopf.addView(zahl, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         GradientDrawable bg = new GradientDrawable();
         bg.setShape(GradientDrawable.OVAL);
         bg.setColor(0xFFFFFFFF);
@@ -126,22 +149,37 @@ public class FotoService extends AccessibilityService
         lp.y = prefs.getInt("y", dm.heightPixels / 2);
 
         knopf.setOnTouchListener(new View.OnTouchListener() {
-            int startX, startY; float downX, downY; boolean bewegt;
+            int startX, startY; float downX, downY; boolean bewegt, lang;
             final int schwelle = (int) (12 * d);
+            final Runnable langGedrueckt = () -> {
+                // Lange gehalten: Selbstauslöser vormerken (startet beim Loslassen).
+                lang = true;
+                kurzVibrieren(40);
+                zahlZeigen("3");
+            };
 
             @Override
             public boolean onTouch(View v, MotionEvent e) {
                 switch (e.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        if (countdown > 0) {
+                            // Antippen während des Countdowns bricht ihn ab.
+                            countdownAbbrechen();
+                            bewegt = true; lang = false;
+                            return true;
+                        }
                         startX = lp.x; startY = lp.y;
                         downX = e.getRawX(); downY = e.getRawY();
-                        bewegt = false;
+                        bewegt = false; lang = false;
                         v.setAlpha(0.7f);
+                        handler.postDelayed(langGedrueckt, LANG_MS);
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         float dx = e.getRawX() - downX, dy = e.getRawY() - downY;
                         if (!bewegt && (Math.abs(dx) > schwelle || Math.abs(dy) > schwelle)) {
                             bewegt = true;
+                            handler.removeCallbacks(langGedrueckt);
+                            if (lang) { lang = false; zahlVerbergen(); }
                             ablageZeigen(true);
                         }
                         if (bewegt) {
@@ -152,9 +190,12 @@ public class FotoService extends AccessibilityService
                         }
                         return true;
                     case MotionEvent.ACTION_UP:
+                        handler.removeCallbacks(langGedrueckt);
                         v.setAlpha(grundAlpha());
                         ablageZeigen(false);
-                        if (bewegt) {
+                        if (lang && !bewegt) {
+                            selbstausloeser();
+                        } else if (bewegt) {
                             if (inAblage(e.getRawY())) {
                                 // Alte Position behalten, Knopf eine Minute verstecken.
                                 lp.x = startX; lp.y = startY;
@@ -168,6 +209,8 @@ public class FotoService extends AccessibilityService
                         }
                         return true;
                     case MotionEvent.ACTION_CANCEL:
+                        handler.removeCallbacks(langGedrueckt);
+                        if (lang) { lang = false; zahlVerbergen(); }
                         v.setAlpha(grundAlpha());
                         ablageZeigen(false);
                         return true;
@@ -186,6 +229,7 @@ public class FotoService extends AccessibilityService
     public void onSharedPreferenceChanged(SharedPreferences sp, String key) {
         if (knopf == null || key == null) return;
         if (key.equals(GROESSE)) {
+            if (countdown > 0) return;
             int alt = lp.width, neu = knopfGroesse();
             // Mittelpunkt beibehalten.
             lp.x += (alt - neu) / 2;
@@ -195,6 +239,46 @@ public class FotoService extends AccessibilityService
         } else if (key.equals(DURCHSICHTIG)) {
             knopf.setAlpha(grundAlpha());
         }
+    }
+
+    // ---------- Selbstauslöser ----------
+
+    private final Runnable tick = new Runnable() {
+        @Override public void run() {
+            countdown--;
+            if (countdown <= 0) {
+                zahlVerbergen();
+                fotoMachen();
+                return;
+            }
+            zahlZeigen(String.valueOf(countdown));
+            kurzVibrieren(30);
+            handler.postDelayed(this, 1000);
+        }
+    };
+
+    private void selbstausloeser() {
+        countdown = 3;
+        zahlZeigen("3");
+        Toast.makeText(this, "Foto in 3 Sekunden …", Toast.LENGTH_SHORT).show();
+        handler.postDelayed(tick, 1000);
+    }
+
+    private void countdownAbbrechen() {
+        handler.removeCallbacks(tick);
+        countdown = 0;
+        zahlVerbergen();
+        Toast.makeText(this, "Selbstauslöser abgebrochen.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void zahlZeigen(String s) {
+        zahl.setText(s);
+        zahl.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, lp.width * 0.5f);
+        zahl.setVisibility(View.VISIBLE);
+    }
+
+    private void zahlVerbergen() {
+        zahl.setVisibility(View.GONE);
     }
 
     // ---------- Foto ----------
@@ -222,11 +306,16 @@ public class FotoService extends AccessibilityService
         try {
             sounds.play(klickId, 1f, 1f, 1, 0, 1f);
         } catch (Exception ignored) { }
+        kurzVibrieren(120);
+    }
+
+    private void kurzVibrieren(long ms) {
         try {
             Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             if (v == null || !v.hasVibrator()) return;
-            VibrationEffect effekt = VibrationEffect.createOneShot(120, VibrationEffect.DEFAULT_AMPLITUDE);
+            VibrationEffect effekt = VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE);
             if (Build.VERSION.SDK_INT >= 33) {
+                // Als Bedienungshilfe kennzeichnen, sonst blendet Android sie im Hintergrund aus.
                 v.vibrate(effekt, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ACCESSIBILITY));
             } else {
                 v.vibrate(effekt, new AudioAttributes.Builder()
@@ -237,45 +326,87 @@ public class FotoService extends AccessibilityService
 
     // ---------- Verschicken ----------
 
-    private void verschickenBauen() {
-        verschicken = new TextView(this);
-        verschicken.setText("➤  Verschicken");
-        verschicken.setTextSize(24);
-        verschicken.setTypeface(Typeface.DEFAULT_BOLD);
-        verschicken.setTextColor(0xFFFFFFFF);
-        verschicken.setGravity(Gravity.CENTER);
-        int ph = (int) (28 * d), pv = (int) (16 * d);
-        verschicken.setPadding(ph, pv, ph, pv);
+    private TextView pille(String text, int farbe) {
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextSize(23);
+        t.setTypeface(Typeface.DEFAULT_BOLD);
+        t.setTextColor(0xFFFFFFFF);
+        t.setGravity(Gravity.CENTER);
+        int ph = (int) (26 * d), pv = (int) (15 * d);
+        t.setPadding(ph, pv, ph, pv);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(0xFF2E7D32);
+        bg.setColor(farbe);
         bg.setCornerRadius(40 * d);
         bg.setStroke((int) (3 * d), 0xFFFFFFFF);
-        verschicken.setBackground(bg);
-        verschicken.setElevation(10 * d);
-        verschicken.setVisibility(View.GONE);
+        t.setBackground(bg);
+        t.setElevation(10 * d);
+        return t;
+    }
+
+    private void verschickenBauen() {
+        leiste = new LinearLayout(this);
+        leiste.setOrientation(LinearLayout.VERTICAL);
+        leiste.setGravity(Gravity.CENTER_HORIZONTAL);
+        int r = (int) (8 * d);
+        leiste.setPadding(r, r, r, r);
+
+        anPerson = pille("", 0xFF2E7D32);
+        anPerson.setOnClickListener(v -> {
+            verschickenAusblenden();
+            neuestesFotoTeilen(0, true);
+        });
+        leiste.addView(anPerson);
+
+        verschicken = pille("➤  Verschicken …", 0xFF1565C0);
         verschicken.setOnClickListener(v -> {
             verschickenAusblenden();
-            neuestesFotoTeilen(0);
+            neuestesFotoTeilen(0, false);
         });
+        LinearLayout.LayoutParams vlp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        vlp.topMargin = (int) (10 * d);
+        leiste.addView(verschicken, vlp);
+
+        leiste.setVisibility(View.GONE);
         verschickenLp = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         verschickenLp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        verschickenLp.y = (int) (90 * d);
-        wm.addView(verschicken, verschickenLp);
+        verschickenLp.y = (int) (80 * d);
+        wm.addView(leiste, verschickenLp);
+    }
+
+    /** Welche WhatsApp-App ist installiert? (null = keine) */
+    private String whatsapp() {
+        for (String pkg : WHATSAPP) {
+            try {
+                getPackageManager().getPackageInfo(pkg, 0);
+                return pkg;
+            } catch (Exception ignored) { }
+        }
+        return null;
+    }
+
+    private boolean personEingerichtet() {
+        return !prefs.getString(PERSON_NUMMER, "").isEmpty() && whatsapp() != null;
     }
 
     private void verschickenZeigen() {
-        verschicken.setVisibility(View.VISIBLE);
+        boolean person = personEingerichtet();
+        anPerson.setVisibility(person ? View.VISIBLE : View.GONE);
+        if (person) anPerson.setText("➤  An " + prefs.getString(PERSON_NAME, "") + " schicken");
+        verschicken.setText(person ? "Jemand anderem schicken …" : "➤  Verschicken …");
+        leiste.setVisibility(View.VISIBLE);
         handler.removeCallbacks(verschickenWeg);
         handler.postDelayed(verschickenWeg, VERSCHICKEN_MS);
     }
 
     private void verschickenAusblenden() {
         handler.removeCallbacks(verschickenWeg);
-        if (verschicken != null) verschicken.setVisibility(View.GONE);
+        if (leiste != null) leiste.setVisibility(View.GONE);
     }
 
     private boolean darfFotosLesen() {
@@ -285,7 +416,7 @@ public class FotoService extends AccessibilityService
     }
 
     /** Sucht das gerade gemachte Bildschirmfoto (das Speichern dauert manchmal etwas). */
-    private void neuestesFotoTeilen(int versuch) {
+    private void neuestesFotoTeilen(int versuch, boolean anPersonSchicken) {
         if (!darfFotosLesen()) {
             Toast.makeText(this, "Bitte einmal „Alle zulassen“ wählen. Danach klappt Verschicken direkt.",
                     Toast.LENGTH_LONG).show();
@@ -294,13 +425,14 @@ public class FotoService extends AccessibilityService
         }
         Uri uri = neuestesFoto();
         if (uri == null && versuch < 15) {
-            handler.postDelayed(() -> neuestesFotoTeilen(versuch + 1), 400);
+            handler.postDelayed(() -> neuestesFotoTeilen(versuch + 1, anPersonSchicken), 400);
             return;
         }
         if (uri == null) {
             startActivity(new Intent(this, FotosActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             return;
         }
+        if (anPersonSchicken && direktAnPerson(uri)) return;
         Intent send = new Intent(Intent.ACTION_SEND)
                 .setType("image/*")
                 .putExtra(Intent.EXTRA_STREAM, uri)
@@ -312,6 +444,27 @@ public class FotoService extends AccessibilityService
             startActivity(chooser);
         } catch (Exception e) {
             Toast.makeText(this, "Verschicken geht gerade nicht.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** Öffnet WhatsApp direkt im Chat mit der eingestellten Person. */
+    private boolean direktAnPerson(Uri uri) {
+        String pkg = whatsapp();
+        String nummer = prefs.getString(PERSON_NUMMER, "");
+        if (pkg == null || nummer.isEmpty()) return false;
+        Intent i = new Intent(Intent.ACTION_SEND)
+                .setPackage(pkg)
+                .setType("image/*")
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .putExtra("jid", nummer + "@s.whatsapp.net")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.setClipData(ClipData.newRawUri("Bildschirmfoto", uri));
+        try {
+            startActivity(i);
+            Toast.makeText(this, "Jetzt unten auf den grünen Pfeil tippen zum Senden.", Toast.LENGTH_LONG).show();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -401,7 +554,7 @@ public class FotoService extends AccessibilityService
         handler.removeCallbacksAndMessages(null);
         if (prefs != null) prefs.unregisterOnSharedPreferenceChangeListener(this);
         if (sounds != null) sounds.release();
-        for (View v : new View[]{knopf, ablage, verschicken}) {
+        for (View v : new View[]{knopf, ablage, leiste}) {
             if (v != null && wm != null) {
                 try { wm.removeView(v); } catch (Exception ignored) { }
             }

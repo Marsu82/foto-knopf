@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
@@ -24,6 +26,9 @@ public class MainActivity extends Activity {
     private LinearLayout einstellungen;
     private final Button[] groesse = new Button[3];
     private Button durchsichtig;
+    private TextView personText;
+    private Button person, personWeg;
+    private static final int REQ_KONTAKT = 3;
     private Button einschalten;
     private float d;
 
@@ -95,12 +100,47 @@ public class MainActivity extends Activity {
             auswahlAnzeigen();
         });
         einstellungen.addView(durchsichtig);
+        TextView pTitel = text("Schnell an eine Person schicken", 22, 0xFF212121);
+        pTitel.setTypeface(Typeface.DEFAULT_BOLD);
+        pTitel.setPadding(0, pad, 0, (int) (6 * d));
+        einstellungen.addView(pTitel);
+        personText = text("", 19, 0xFF555555);
+        personText.setPadding(0, 0, 0, (int) (10 * d));
+        einstellungen.addView(personText);
+        person = auswahl("");
+        person.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (72 * d)));
+        person.setOnClickListener(v -> personWaehlen());
+        einstellungen.addView(person);
+        personWeg = auswahl("Person entfernen");
+        LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (64 * d));
+        wlp.topMargin = (int) (10 * d);
+        personWeg.setLayoutParams(wlp);
+        personWeg.setOnClickListener(v -> {
+            prefs().edit().remove(FotoService.PERSON_NAME).remove(FotoService.PERSON_NUMMER).apply();
+            personAnzeigen();
+        });
+        einstellungen.addView(personWeg);
         box.addView(einstellungen);
 
         anleitung = text("", 21, 0xFF424242);
         anleitung.setPadding(0, pad, 0, 0);
         anleitung.setLineSpacing(0, 1.2f);
         box.addView(anleitung);
+
+        Button erklaerung = auswahl("Kurze Erklärung ansehen");
+        LinearLayout.LayoutParams elp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, (int) (72 * d));
+        elp.topMargin = pad;
+        erklaerung.setLayoutParams(elp);
+        auswahlFaerben(erklaerung, false);
+        erklaerung.setOnClickListener(v -> startActivity(new Intent(this, WillkommenActivity.class)));
+        box.addView(erklaerung);
+
+        if (!prefs().getBoolean(WillkommenActivity.GESEHEN, false)) {
+            startActivity(new Intent(this, WillkommenActivity.class));
+        }
 
         ScrollView sv = new ScrollView(this);
         sv.setBackgroundColor(0xFFFFFFFF);
@@ -114,6 +154,7 @@ public class MainActivity extends Activity {
         // Falls der Knopf gerade versteckt ist: beim Öffnen der App sofort zurückholen.
         FotoService.knopfZurueckholen();
         auswahlAnzeigen();
+        personAnzeigen();
         einstellungen.setVisibility(istEingeschaltet() ? View.VISIBLE : View.GONE);
         if (istEingeschaltet()) {
             status.setText("✅  Der Foto-Knopf ist an.");
@@ -123,8 +164,10 @@ public class MainActivity extends Activity {
                     "So geht's:\n\n" +
                     "1.  Öffnen Sie WhatsApp, Instagram oder eine andere App.\n\n" +
                     "2.  Tippen Sie einmal auf den runden Knopf mit der Kamera. Es klickt.\n\n" +
-                    "3.  Oben erscheint kurz der grüne Knopf „Verschicken“. Antippen, " +
-                    "dann WhatsApp und den Empfänger auswählen.\n\n" +
+                    "3.  Oben erscheint kurz der grüne Knopf. Antippen, dann öffnet sich " +
+                    "WhatsApp mit dem Foto. Nur noch auf Senden tippen.\n\n" +
+                    "Selbstauslöser: Finger auf dem Knopf lassen, bis es vibriert, dann loslassen. " +
+                    "Das Foto kommt nach 3 Sekunden.\n\n" +
                     "Alle Fotos finden Sie über den blauen Knopf „Meine Bildschirmfotos“.\n\n" +
                     "Knopf verschieben: Finger darauf halten und schieben.\n\n" +
                     "Knopf verstecken: ganz nach unten ziehen und loslassen. " +
@@ -153,6 +196,75 @@ public class MainActivity extends Activity {
             if (me.equals(c)) return true;
         }
         return false;
+    }
+
+    // ---------- Person für "An ... schicken" ----------
+
+    private void personWaehlen() {
+        Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        try {
+            startActivityForResult(i, REQ_KONTAKT);
+        } catch (Exception e) {
+            Toast.makeText(this, "Die Kontakte lassen sich nicht öffnen.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code != REQ_KONTAKT || result != RESULT_OK || data == null || data.getData() == null) return;
+        String[] proj = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                ContactsContract.CommonDataKinds.Phone.NUMBER};
+        try (Cursor cur = getContentResolver().query(data.getData(), proj, null, null, null)) {
+            if (cur != null && cur.moveToFirst()) {
+                String name = cur.getString(0);
+                String nummer = nummerFuerWhatsApp(cur.getString(1));
+                if (nummer.length() < 8) {
+                    Toast.makeText(this, "Diese Nummer passt nicht. Bitte eine Handynummer wählen.",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (name == null || name.trim().isEmpty()) name = "+" + nummer;
+                // Nur den Vornamen anzeigen, damit der Knopf kurz bleibt.
+                String kurz = name.trim().split("\\s+")[0];
+                prefs().edit().putString(FotoService.PERSON_NAME, kurz)
+                        .putString(FotoService.PERSON_NUMMER, nummer).apply();
+                personAnzeigen();
+                Toast.makeText(this, "Fertig! Nach jedem Foto gibt es jetzt den Knopf „An " + kurz + " schicken“.",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Das hat leider nicht geklappt.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** "0151 123 456" -> "49151123456" (deutsche Nummern ohne Vorwahl bekommen +49). */
+    static String nummerFuerWhatsApp(String roh) {
+        if (roh == null) return "";
+        String s = roh.trim();
+        boolean plus = s.startsWith("+");
+        String ziffern = s.replaceAll("[^0-9]", "");
+        if (plus) return ziffern;
+        if (ziffern.startsWith("00")) return ziffern.substring(2);
+        if (ziffern.startsWith("0")) return "49" + ziffern.substring(1);
+        return ziffern;
+    }
+
+    private void personAnzeigen() {
+        String name = prefs().getString(FotoService.PERSON_NAME, "");
+        String nummer = prefs().getString(FotoService.PERSON_NUMMER, "");
+        if (nummer.isEmpty()) {
+            personText.setText("Wählen Sie eine Person aus Ihren Kontakten. Dann geht ein Foto mit einem Tipp per WhatsApp an sie.");
+            person.setText("Person auswählen");
+            auswahlFaerben(person, true);
+            personWeg.setVisibility(View.GONE);
+        } else {
+            personText.setText("Fotos gehen mit einem Tipp an: " + name + " (+" + nummer + ")");
+            person.setText("Andere Person wählen");
+            auswahlFaerben(person, false);
+            personWeg.setVisibility(View.VISIBLE);
+            auswahlFaerben(personWeg, false);
+        }
     }
 
     private SharedPreferences prefs() {

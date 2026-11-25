@@ -48,6 +48,7 @@ Neuere Samsung-Handys (One UI 6 und neuer) blockieren Apps, die nicht aus dem Pl
    → **„Einstellungen“** tippen → Schalter **„Von dieser Quelle zulassen“** einschalten → **Zurück**.
 3. **„Installieren“** tippen.
 4. Bei *„App wurde installiert“* auf **„Öffnen“** tippen.
+5. Es erscheint eine kurze **Erklärung in drei Seiten**. Mit **„Weiter“** durchblättern, am Ende **„Los geht's!“**.
 
 ## Schritt 5: Foto-Knopf einschalten (erster Versuch)
 
@@ -84,6 +85,14 @@ Samsung legt Apps gern schlafen. Damit der Knopf immer da bleibt:
 1. **Einstellungen** → **Apps** → **Foto-Knopf** → **Akku**
 2. **„Nicht eingeschränkt“** wählen.
 
+## Schritt 8b: Person für „An … schicken“ festlegen
+
+Damit Fotos mit **einem Tipp** im WhatsApp-Chat mit dir landen:
+
+1. Foto-Knopf-App öffnen → nach unten scrollen zu **„Schnell an eine Person schicken“**.
+2. **„Person auswählen“** tippen → **deinen Kontakt** auswählen.
+3. Fertig. Nach jedem Foto erscheint jetzt oben der grüne Knopf **„An [dein Name] schicken“**.
+
 ## Schritt 9: Schutz wieder einschalten (wichtig!)
 
 1. **Play Store** → Profilbild → **Play Protect** → Zahnrad → **„Apps mit Play Protect scannen“** wieder **einschalten**.
@@ -96,7 +105,8 @@ Der Foto-Knopf funktioniert danach weiter.
 
 1. **Lautstärke-Taste nach oben** drücken, damit man den Klick hört.
 2. WhatsApp öffnen und **einmal auf den roten Knopf** tippen.
-3. Es **klickt** und **vibriert**. Das Foto ist gespeichert. Oben erscheint kurz der grüne Knopf **„Verschicken“**.
+3. Es **klickt** und **vibriert**. Das Foto ist gespeichert. Oben erscheint kurz der grüne Knopf **„An … schicken“**.
+   Antippen → WhatsApp öffnet sich mit dem Foto → unten auf den **grünen Pfeil** tippen. Kommt das Foto bei dir an?
 4. Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“**. Beim ersten Mal fragt das Handy nach dem Zugriff auf Fotos: **„Alle zulassen“** wählen.
    Jetzt sieht man alle Bildschirmfotos, das neueste oben links.
 
@@ -107,7 +117,9 @@ Der Foto-Knopf funktioniert danach weiter.
 | Was möchte ich? | So geht's |
 |---|---|
 | **Bildschirmfoto machen** | Einmal auf den roten Kamera-Knopf tippen. Es klickt. |
-| **Foto sofort verschicken** | Direkt danach oben auf den grünen Knopf **„Verschicken“** tippen → **WhatsApp** → Empfänger wählen. Der grüne Knopf bleibt etwa 8 Sekunden. |
+| **Foto an [Name] schicken** | Direkt nach dem Foto oben auf den grünen Knopf **„An … schicken“** tippen → in WhatsApp auf den **grünen Pfeil** tippen. Der Knopf bleibt etwa 10 Sekunden. |
+| **Foto an jemand anderen schicken** | Direkt nach dem Foto auf den blauen Knopf **„Jemand anderem schicken …“** → WhatsApp → Empfänger wählen |
+| **Foto mit Selbstauslöser** | Finger auf dem roten Knopf **lassen, bis es vibriert** → loslassen → nach **3 Sekunden** kommt das Foto. Nochmal tippen bricht ab. |
 | **Fotos ansehen** | Foto-Knopf-App öffnen → blauer Knopf **„Meine Bildschirmfotos“** |
 | **Älteres Foto verschicken** | In „Meine Bildschirmfotos“ das Foto antippen → **Teilen** → WhatsApp |
 | **Foto löschen** | In „Meine Bildschirmfotos“ das Foto **länger drücken** → mit **„Zulassen“** bestätigen. Es kommt in den Papierkorb. |
@@ -116,6 +128,7 @@ Der Foto-Knopf funktioniert danach weiter.
 | **Knopf woanders hinschieben** | Finger auf dem Knopf lassen und verschieben |
 | **Knopf kurz verstecken** (z. B. beim Video) | Knopf **ganz nach unten ziehen** und loslassen. Nach 1 Minute ist er wieder da, oder sofort, wenn man die Foto-Knopf-App öffnet. |
 | **Klick lauter oder leiser** | Lautstärketasten an der Seite |
+| **Alles nochmal erklärt bekommen** | Foto-Knopf-App öffnen → ganz unten **„Kurze Erklärung ansehen“** |
 
 ## Wenn etwas nicht klappt
 
@@ -127,4 +140,6 @@ Der Foto-Knopf funktioniert danach weiter.
 | „Das Foto hat leider nicht geklappt“ | Kurz warten und noch einmal tippen. Manche Apps (z. B. Banking) verbieten Bildschirmfotos. |
 | „Meine Bildschirmfotos“ ist leer oder zeigt nur wenige | Einstellungen → Apps → Foto-Knopf → Berechtigungen → **Fotos und Videos** → **„Immer alle zulassen“** |
 | „Verschicken“ öffnet nur die Fotos-Seite | Einmal **„Alle zulassen“** wählen. Danach öffnet „Verschicken“ direkt WhatsApp & Co. |
+| „An … schicken“ öffnet WhatsApp, aber nicht den richtigen Chat | In der App **„Andere Person wählen“** und den Kontakt neu auswählen. Notfalls den blauen Knopf „Jemand anderem schicken …“ nehmen. |
+| Knopf zeigt eine Zahl 3, 2, 1 | Das ist der Selbstauslöser (Finger war lange auf dem Knopf). Einfach warten oder nochmal tippen zum Abbrechen. |
 | Installation wird blockiert | Schritt 1 und 2 prüfen: Automatische Sperre und Play Protect müssen kurz aus sein. |
