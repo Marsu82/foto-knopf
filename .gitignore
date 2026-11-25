@@ -1,0 +1,9 @@
+build/
+app/build/
+.gradle/
+local.properties
+*.zip
+seite.template.html
+Foto-Knopf-Download.html
+QR-Code-Foto-Knopf.png
+/Foto-Knopf.apk

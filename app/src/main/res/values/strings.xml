@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Foto-Knopf</string>
+    <string name="service_name">Foto-Knopf</string>
+    <string name="service_description">Zeigt einen großen Knopf auf dem Bildschirm. Ein Tipp darauf macht ein Bildschirmfoto. Die App liest keine Inhalte und sendet nichts ins Internet.</string>
+</resources>
